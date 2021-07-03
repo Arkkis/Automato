@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using WindowsInput.Native;
 using WindowsInput;
 
 namespace Automato
 {
     public partial class Background : Form
     {
-        readonly InputSimulator sim = new InputSimulator();
+        readonly InputSimulator sim = new();
 
         enum KeyModifier
         {
@@ -69,7 +61,7 @@ namespace Automato
 
         private void Tray_Openfile_Click(object sender, System.EventArgs e)
         {
-            OpenFileDialog openfiledialog = new OpenFileDialog();
+            OpenFileDialog openfiledialog = new();
             Invoke((Action)(() => { openfiledialog.ShowDialog(); }));
             MessageBox.Show(openfiledialog.FileName);
         }

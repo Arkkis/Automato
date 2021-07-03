@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31410.414
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automato", "Automato\Automato.csproj", "{27CC2CD8-C751-404B-93DD-928AE75EBBB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automato", "Automato.csproj", "{0B741B8D-0EFD-4378-B094-F7F6CAC1EF52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{27CC2CD8-C751-404B-93DD-928AE75EBBB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27CC2CD8-C751-404B-93DD-928AE75EBBB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27CC2CD8-C751-404B-93DD-928AE75EBBB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27CC2CD8-C751-404B-93DD-928AE75EBBB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B741B8D-0EFD-4378-B094-F7F6CAC1EF52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B741B8D-0EFD-4378-B094-F7F6CAC1EF52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B741B8D-0EFD-4378-B094-F7F6CAC1EF52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B741B8D-0EFD-4378-B094-F7F6CAC1EF52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3709E64F-D7EA-4BF3-BCF0-F71B18E1588A}
+		SolutionGuid = {C54B534B-1047-488E-9A60-53D09BB06C56}
 	EndGlobalSection
 EndGlobal

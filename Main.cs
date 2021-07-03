@@ -24,11 +24,11 @@ namespace Automato
 
         private const int SW_RESTORE = 9;
 
-        readonly InputSimulator sim = new InputSimulator();
+        readonly InputSimulator sim = new();
         private static readonly string appdir = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string keyfile;
         private bool loop = true;
-        private static WebClient myWebClient = new WebClient();
+        private static WebClient myWebClient = new();
 
         public Main()
         {
@@ -68,13 +68,13 @@ namespace Automato
                 File.WriteAllText(appdir + "\\commands.txt", commandstowrite);
             }
 
-            FileInfo hufile = new FileInfo(appdir + "\\" + "AutomatoUpdater.exe");
+            FileInfo hufile = new(appdir + "\\" + "AutomatoUpdater.exe");
             if (!File.Exists(appdir + "\\" + "AutomatoUpdater.exe") || hufile.Length < 7680)
             {
                 KillProcess("AutomatoUpdater", 3000);
 
                 myWebClient = new WebClient();
-                Uri uri = new Uri("");
+                Uri uri = new("");
                 myWebClient.DownloadFileAsync(uri, "AutomatoUpdater.exe");
             }
 
@@ -91,7 +91,7 @@ namespace Automato
             {
                 if (GetLatestVersion() != "noconnection" && GetLatestVersion() != Text.Replace("Automato (", "").Replace(")", "") && File.Exists("AutomatoUpdater.exe"))
                 {
-                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    ProcessStartInfo startInfo = new()
                     {
                         FileName = "AutomatoUpdater.exe",
                         Arguments = "/version=" + Text.Replace("Automato (", "").Replace(")", "")
@@ -195,7 +195,7 @@ namespace Automato
 
                             if (runfile.Length > 0)
                             {
-                                ProcessStartInfo startInfo = new ProcessStartInfo(runfile);
+                                ProcessStartInfo startInfo = new(runfile);
                                 if (count == 2)
                                 {
                                     //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
@@ -328,9 +328,9 @@ namespace Automato
                                     windowheight = SystemInformation.VirtualScreen.Height,
                                     windowx = SystemInformation.VirtualScreen.Left,
                                     windowy = SystemInformation.VirtualScreen.Top;
-                                Size windowsize = new Size(windowwidth, windowheight);
+                                Size windowsize = new(windowwidth, windowheight);
 
-                                Rectangle WindowBounds = new Rectangle();
+                                Rectangle WindowBounds = new();
 
                                 if (count == 3)
                                 {
@@ -357,10 +357,10 @@ namespace Automato
 
                                 ////// FOR SAVED IMAGE ////////
                                 Image imagefile = Image.FromFile(splitline[1]);
-                                Bitmap bitmapfile = new Bitmap(imagefile);
+                                Bitmap bitmapfile = new(imagefile);
                                 //////////////////////////////
 
-                                Bitmap bmpScreenshot = new Bitmap(windowwidth, windowheight, PixelFormat.Format32bppArgb);
+                                Bitmap bmpScreenshot = new(windowwidth, windowheight, PixelFormat.Format32bppArgb);
 
                                 // Create a graphics object from the bitmap.
                                 Graphics gfxScreenshot = Graphics.FromImage(bmpScreenshot);
@@ -408,7 +408,7 @@ namespace Automato
                                     {
                                         wait = false;
                                     }
-                                    
+
                                     Thread.Sleep(1000);
                                 }
                             }
@@ -421,17 +421,17 @@ namespace Automato
                                     windowheight = SystemInformation.VirtualScreen.Height,
                                     windowx = SystemInformation.VirtualScreen.Left,
                                     windowy = SystemInformation.VirtualScreen.Top;
-                                Size windowsize = new Size(windowwidth, windowheight);
+                                Size windowsize = new(windowwidth, windowheight);
 
                                 //Debug.WriteLine(windowwidth + " " + windowheight + " " + windowx + " " + windowy);
 
-                                
+
 
                                 // Take the screenshot from the upper left corner to the right bottom corner.
 
                                 try
                                 {
-                                    Bitmap bmpScreenshot = new Bitmap(windowwidth, windowheight, PixelFormat.Format32bppRgb);
+                                    Bitmap bmpScreenshot = new(windowwidth, windowheight, PixelFormat.Format32bppRgb);
                                     Graphics gfxScreenshot = Graphics.FromImage(bmpScreenshot);
                                     gfxScreenshot.CopyFromScreen(windowx, windowy, 0, 0, windowsize, CopyPixelOperation.SourceCopy);
 
@@ -851,7 +851,7 @@ namespace Automato
         {
             try
             {
-                Uri urlAddress = new Uri("osoite");
+                Uri urlAddress = new("osoite");
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
                 request.Timeout = 2000;
@@ -891,7 +891,7 @@ namespace Automato
                     processes[0].Kill();
                     await PutTaskDelay(sleeptime).ConfigureAwait(false);
                 }
-                catch(InvalidOperationException)
+                catch (InvalidOperationException)
                 {
                     // ignored
                 }
@@ -917,7 +917,7 @@ namespace Automato
                 {
                     sw.WriteLine(error + Environment.NewLine);
                 }
-                WebClient client = new WebClient();
+                WebClient client = new();
                 client.OpenRead("osoite" + GetLatestVersion() + " - " + error.Replace(Environment.NewLine, "*--*"));
                 client.Dispose();
                 MessageBox.Show(Properties.Resources.string_error);
