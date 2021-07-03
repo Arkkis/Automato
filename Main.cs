@@ -426,11 +426,5 @@
             Environment.Exit(0);
             //UnregisterHotKey(this.Handle, 0);
         }
-
-        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
-        {
-            //ReportError(e.Exception.ToString());
-            throw e.Exception;
-        }
     }
 }
