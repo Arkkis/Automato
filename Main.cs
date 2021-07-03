@@ -6,9 +6,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Net;
-using System.Text;
 using System.Globalization;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -19,16 +16,12 @@ namespace Automato
 {
     public partial class Main : Form
     {
-        //private Background BackgroundForm;
-        //private bool StopApp = false;
-
         private const int SW_RESTORE = 9;
 
         readonly InputSimulator sim = new();
         private static readonly string appdir = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string keyfile;
-        private bool loop = true;
-        private static WebClient myWebClient = new();
+        private readonly bool loop = true;
 
         public Main()
         {
@@ -68,18 +61,7 @@ namespace Automato
                 File.WriteAllText(appdir + "\\commands.txt", commandstowrite);
             }
 
-            FileInfo hufile = new(appdir + "\\" + "AutomatoUpdater.exe");
-            if (!File.Exists(appdir + "\\" + "AutomatoUpdater.exe") || hufile.Length < 7680)
-            {
-                KillProcess("AutomatoUpdater", 3000);
-
-                myWebClient = new WebClient();
-                Uri uri = new("");
-                myWebClient.DownloadFileAsync(uri, "AutomatoUpdater.exe");
-            }
-
             string[] args = Environment.GetCommandLineArgs();
-            bool skipupdate = false;
 
             keyfile = appdir + @"\keys.akp";
             if (!File.Exists(keyfile))
@@ -87,33 +69,12 @@ namespace Automato
                 File.WriteAllText(keyfile, "");
             }
 
-            if (skipupdate == false)
-            {
-                if (GetLatestVersion() != "noconnection" && GetLatestVersion() != Text.Replace("Automato (", "").Replace(")", "") && File.Exists("AutomatoUpdater.exe"))
-                {
-                    ProcessStartInfo startInfo = new()
-                    {
-                        FileName = "AutomatoUpdater.exe",
-                        Arguments = "/version=" + Text.Replace("Automato (", "").Replace(")", "")
-                    };
-                    Process.Start(startInfo);
-                    Application.Exit();
-                }
-            }
-
-            //BackgroundForm = new Background();
-            //BackgroundForm.Show();
             new Thread(() => new Background().ShowDialog()).Start();
 
             if (args.Length > 1)
             {
                 for (int i = 1; i < args.Length; i++)
                 {
-                    if (args[i].ToString(CultureInfo.CurrentCulture) == "-noupdate")
-                    {
-                        skipupdate = true;
-                    }
-
                     if (File.Exists(args[i]) && Path.GetExtension(args[i]) == ".akp")
                     {
                         keyfile = args[i];
@@ -847,96 +808,22 @@ namespace Automato
             return virtualkey;
         }
 
-        private static string GetLatestVersion()
-        {
-            try
-            {
-                Uri urlAddress = new("osoite");
-
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
-                request.Timeout = 2000;
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    Stream receiveStream = response.GetResponseStream();
-
-                    var readStream = response.CharacterSet == null ? new StreamReader(receiveStream ?? throw new InvalidOperationException()) : new StreamReader(receiveStream ?? throw new InvalidOperationException(), Encoding.GetEncoding(response.CharacterSet));
-
-                    string data = readStream.ReadToEnd();
-
-                    response.Close();
-                    readStream.Close();
-
-                    return data;
-                }
-                else
-                {
-                    return "";
-                }
-            }
-            catch (WebException)
-            {
-                return "noconnection";
-            }
-        }
-
-        private async void KillProcess(string process, int sleeptime)
-        {
-            Process[] processes = Process.GetProcessesByName(process);
-            if (processes.Length > 0)
-            {
-                try
-                {
-                    processes[0].Kill();
-                    await PutTaskDelay(sleeptime).ConfigureAwait(false);
-                }
-                catch (InvalidOperationException)
-                {
-                    // ignored
-                }
-            }
-        }
-
-        private static async Task PutTaskDelay(int delay)
-        {
-            await Task.Delay(delay).ConfigureAwait(false);
-        }
-
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             Environment.Exit(0);
             //UnregisterHotKey(this.Handle, 0);
         }
 
-        static void ReportError(string error)
-        {
-            try
-            {
-                using (StreamWriter sw = File.AppendText(appdir + "\\" + "errorlog.txt"))
-                {
-                    sw.WriteLine(error + Environment.NewLine);
-                }
-                WebClient client = new();
-                client.OpenRead("osoite" + GetLatestVersion() + " - " + error.Replace(Environment.NewLine, "*--*"));
-                client.Dispose();
-                MessageBox.Show(Properties.Resources.string_error);
-                Application.Exit();
-            }
-            catch (WebException)
-            {
-
-            }
-        }
-
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            ReportError(e.Exception.ToString());
+            //ReportError(e.Exception.ToString());
+            throw e.Exception;
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            ReportError(e.ExceptionObject.ToString());
+            //ReportError(e.ExceptionObject.ToString());
+            //throw e.;
         }
 
         public static Point? Find(Bitmap haystack, Bitmap needle)
