@@ -2,12 +2,9 @@
 {
     public partial class Main : Form
     {
-        private const int SW_RESTORE = 9;
-
-        readonly InputSimulator sim = new();
-        private static readonly string appdir = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        private string keyfile;
-        private readonly bool loop = true;
+        private static readonly string applicationPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        //private string keyfile;
+        private bool loop = false;
 
         public Main()
         {
@@ -16,37 +13,10 @@
 
         private void Main_Load(object sender, EventArgs e)
         {
-            if (!File.Exists(appdir + "\\errorlog.txt"))
-            {
-                File.WriteAllText("", appdir + "\\errorlog.txt");
-            }
+            var args = Environment.GetCommandLineArgs();
 
-            if (File.Exists(@"D:\Omat tiedostot\Documents\Visual Studio 2019\Projects\Automato\Automato\Main.cs"))
-            {
-                string commandstowrite = "";
-                foreach (string item in File.ReadAllLines(@"D:\Omat tiedostot\Documents\Visual Studio 2019\Projects\Automato\Automato\Main.cs"))
-                {
-                    if (item.Contains("|"))
-                    {
-                        try
-                        {
-                            string[] cleancommand = item.Split(new string[] { "StartsWith(\"" }, StringSplitOptions.None);
-                            string[] cleancommand2 = cleancommand[1].Split('"');
-                            commandstowrite += cleancommand2[0] + Environment.NewLine;
-                        }
-                        catch (Exception)
-                        {
+            var keyfile = $"{applicationPath}\\keys.akp";
 
-                        }
-                    }
-                }
-                File.Delete(appdir + "\\commands.txt");
-                File.WriteAllText(appdir + "\\commands.txt", commandstowrite);
-            }
-
-            string[] args = Environment.GetCommandLineArgs();
-
-            keyfile = appdir + @"\keys.akp";
             if (!File.Exists(keyfile))
             {
                 File.WriteAllText(keyfile, "");
@@ -56,6 +26,8 @@
 
             if (args.Length > 1)
             {
+                var sim = new InputSimulator();
+
                 for (int i = 1; i < args.Length; i++)
                 {
                     if (File.Exists(args[i]) && Path.GetExtension(args[i]) == ".akp")
@@ -69,72 +41,77 @@
 
         public static void Start(bool loop, string keyfile, InputSimulator sim)
         {
+            var commandList = File.ReadAllLines(keyfile);
+
             while (loop)
             {
-                int counter = 0;
+                var counter = 0;
 
-                foreach (string line in File.ReadAllLines(keyfile))
+                foreach (string commandLine in commandList)
                 {
                     counter++;
-                    string[] splitline = line.Split('|');
-                    int count = splitline.Length - 1;
+                    var arguments = commandLine.Split('|');
+                    var count = arguments.Length - 1;
 
-                    if (line.Length > 0)
+                    if (commandLine.Length == 0)
                     {
-                        //Debug.WriteLine(counter);
-                        if (counter == 1 && line.StartsWith("LOOP", StringComparison.CurrentCulture))
-                        {
-                            loop = true;
-                            continue;
-                        }
-                        else if (counter == 1 && !line.StartsWith("LOOP", StringComparison.CurrentCulture))
-                        {
-                            loop = false;
-                        }
+                        throw new Exception("Invalid command");
+                    }
 
-                        if (line.StartsWith("PRESSKEY|", StringComparison.CurrentCulture))
-                        {
-                            sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
-                        }
-                        else if (line.StartsWith("TYPE|", StringComparison.CurrentCulture))
-                        {
-                            sim.Keyboard.TextEntry(splitline[1]);
-                        }
-                        else if (line.StartsWith("SENDKEYS|", StringComparison.CurrentCulture))
-                        {
+                    var command = arguments[0];
+
+                    switch (command)
+                    {
+                        case "LOOP":
+                            if (counter == 1)
+                            {
+                                loop = true;
+                                continue;
+                            }
+                            break;
+
+                        case "PRESSKEY":
+                            sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
+                            break;
+
+                        case "TYPE":
+                            sim.Keyboard.TextEntry(arguments[1]);
+                            break;
+
+                        case "SENDKEYS":
                             if (count == 2)
                             {
-                                sim.Keyboard.ModifiedKeyStroke(KeyCodeConverter.ConvertToVirtualKey(splitline[1]), KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
+                                sim.Keyboard.ModifiedKeyStroke(KeyCodeConverter.ConvertToVirtualKey(arguments[1]), KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
                             }
                             else if (count == 3)
                             {
-                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
-                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
-                                sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(splitline[3]));
-                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
-                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
+                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
+                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
+                                sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(arguments[3]));
+                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
+                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
                             }
-                        }
-                        else if (line.StartsWith("WAIT|", StringComparison.CurrentCulture))
-                        {
-                            bool isNumeric = int.TryParse(splitline[1], out int n);
+                            break;
+
+                        case "WAIT":
+                            var isNumeric = int.TryParse(arguments[1], out int seconds);
                             if (isNumeric)
                             {
-                                Debug.WriteLine("Waiting for " + n / 1000);
-                                Thread.Sleep(n);
+                                Debug.WriteLine("Waiting for " + seconds / 1000);
+                                Thread.Sleep(seconds);
                             }
-                        }
-                        else if (line.StartsWith("RUNCOMMAND|", StringComparison.CurrentCulture))
-                        {
-                            string runfile = "";
+                            break;
 
-                            if (File.Exists(appdir + @"\" + splitline[1]))
+                        case "RUNCOMMAND":
+                            var runfile = string.Empty;
+
+                            if (File.Exists(applicationPath + @"\" + arguments[1]))
                             {
-                                runfile = appdir + @"\" + splitline[1];
+                                runfile = applicationPath + @"\" + arguments[1];
                             }
-                            else if (File.Exists(splitline[1]))
+                            else if (File.Exists(arguments[1]))
                             {
-                                runfile = splitline[1];
+                                runfile = arguments[1];
                             }
 
                             if (runfile.Length > 0)
@@ -143,40 +120,22 @@
                                 if (count == 2)
                                 {
                                     //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                                    startInfo.Arguments = splitline[2];
+                                    startInfo.Arguments = arguments[2];
                                 }
                                 Process.Start(startInfo);
                             }
-                        }
-                        else if (line.StartsWith("WINACTIVATE|", StringComparison.CurrentCulture))
-                        {
-                            Process[] prc = Process.GetProcessesByName(splitline[1]);
-                            if (prc.Length > 0)
-                            {
-                                if (NativeMethods.IsIconic(prc[0].MainWindowHandle))
-                                {
-                                    NativeMethods.ShowWindow(prc[0].MainWindowHandle, SW_RESTORE);
-                                }
-                                NativeMethods.SetForegroundWindow(prc[0].MainWindowHandle);
+                            break;
 
-                                for (int i = 0; i < 5; i++)
-                                {
-                                    if (NativeMethods.GetForegroundWindow().Equals(prc[0].MainWindowHandle))
-                                    {
-                                        break;
-                                    }
-                                    Debug.WriteLine("Waiting window to activate...");
-                                    Thread.Sleep(1000);
-                                }
-                            }
-                        }
-                        else if (line.StartsWith("WAITWIN|", StringComparison.CurrentCulture))
-                        {
+                        case "WINACTIVATE":
+                            Commands.WinActivate(arguments[1]);
+                            break;
+
+                        case "WAITWIN":
                             if (count == 2)
                             {
-                                for (int i = 0; i < int.Parse(splitline[1], CultureInfo.CurrentCulture) / 1000; i++)
+                                for (int i = 0; i < int.Parse(arguments[1], CultureInfo.CurrentCulture) / 1000; i++)
                                 {
-                                    Process[] prc = Process.GetProcessesByName(splitline[2]);
+                                    var prc = Process.GetProcessesByName(arguments[2]);
                                     if (prc.Length > 0)
                                     {
                                         if (NativeMethods.GetForegroundWindow().Equals(prc[0].MainWindowHandle))
@@ -188,14 +147,14 @@
                                     }
                                 }
                             }
-                        }
-                        else if (line.StartsWith("WAITFILE|", StringComparison.CurrentCulture))
-                        {
+                            break;
+
+                        case "WAITFILE":
                             if (count == 2)
                             {
-                                for (int i = 0; i < int.Parse(splitline[1], CultureInfo.CurrentCulture) / 1000; i++)
+                                for (int i = 0; i < int.Parse(arguments[1], CultureInfo.CurrentCulture) / 1000; i++)
                                 {
-                                    if (File.Exists(splitline[2]))
+                                    if (File.Exists(arguments[2]))
                                     {
                                         break;
                                     }
@@ -203,69 +162,58 @@
                                     Thread.Sleep(1000);
                                 }
                             }
-                        }
-                        else if (line.StartsWith("MOUSECLICK|", StringComparison.CurrentCulture))
-                        {
+                            break;
+
+                        case "MOUSECLICK":
                             if (count >= 3)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[2]), MouseHelpers.GetMouseY(splitline[3]));
+                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[2]), MouseHelpers.GetMouseY(arguments[3]));
                                 Thread.Sleep(10);
 
                                 int clicktimes = 1;
 
                                 if (count == 4)
                                 {
-                                    clicktimes = int.Parse(splitline[4], CultureInfo.CurrentCulture);
+                                    clicktimes = int.Parse(arguments[4], CultureInfo.CurrentCulture);
                                 }
 
                                 Debug.WriteLine(clicktimes);
 
                                 for (int i = 0; i < clicktimes; i++)
                                 {
-                                    if (splitline[1].ToLower(CultureInfo.CurrentCulture) == "mouse1")
+                                    if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse1")
                                     {
                                         sim.Mouse.LeftButtonClick();
                                     }
-                                    else if (splitline[1].ToLower(CultureInfo.CurrentCulture) == "mouse1double")
+                                    else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse1double")
                                     {
                                         sim.Mouse.LeftButtonDoubleClick();
                                     }
-                                    else if (splitline[1].ToLower(CultureInfo.CurrentCulture) == "mouse2")
+                                    else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse2")
                                     {
                                         sim.Mouse.RightButtonClick();
                                     }
-                                    else if (splitline[1].ToLower(CultureInfo.CurrentCulture) == "mouse2double")
+                                    else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse2double")
                                     {
                                         sim.Mouse.RightButtonDoubleClick();
                                     }
                                     Thread.Sleep(100);
                                 }
                             }
-                        }
-                        else if (line.StartsWith("MOUSEMOVE|", StringComparison.CurrentCulture))
-                        {
+                            break;
+
+                        case "MOUSEMOVE":
                             if (count == 2)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[1]), MouseHelpers.GetMouseY(splitline[2]));
+                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[1]), MouseHelpers.GetMouseY(arguments[2]));
                             }
-                        }
-                        else if (line.StartsWith("MOUSEHOLD|", StringComparison.CurrentCulture))
-                        {
-                            if (count == 3)
-                            {
-                                bool isNumeric = int.TryParse(splitline[3], out int n);
+                            break;
 
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[1]), MouseHelpers.GetMouseY(splitline[2]));
-                                sim.Mouse.LeftButtonDown();
-                                if (isNumeric)
-                                {
-                                    Thread.Sleep(n);
-                                }
-                                sim.Mouse.LeftButtonUp();
-                            }
-                        }
-                        else if (line.StartsWith("FINDIMAGE|", StringComparison.CurrentCulture))
-                        {
+                        case "MOUSEHOLD":
+                            
+                            break;
+
+                        case "FINDIMAGE":
                             if (count >= 1)
                             {
                                 int windowwidth = SystemInformation.VirtualScreen.Width,
@@ -278,7 +226,7 @@
 
                                 if (count == 3)
                                 {
-                                    Process[] prc = Process.GetProcessesByName(splitline[3]);
+                                    var prc = Process.GetProcessesByName(arguments[3]);
                                     if (prc.Length > 0)
                                     {
                                         if (NativeMethods.GetWindowRect(prc[0].MainWindowHandle, out var rct))
@@ -300,7 +248,7 @@
                                 Debug.WriteLine(windowwidth + " " + windowheight + " " + windowx + " " + windowy);
 
                                 ////// FOR SAVED IMAGE ////////
-                                Image imagefile = Image.FromFile(splitline[1]);
+                                Image imagefile = Image.FromFile(arguments[1]);
                                 Bitmap bitmapfile = new(imagefile);
                                 //////////////////////////////
 
@@ -322,7 +270,7 @@
                                     if (count >= 2)
                                     {
                                         Debug.WriteLine("count == 2");
-                                        if (splitline[2] == "CLICK")
+                                        if (arguments[2] == "CLICK")
                                         {
                                             double XCoord = picturefound.Value.X + (bitmapfile.Width / 2);
                                             double YCoord = picturefound.Value.Y + (bitmapfile.Height / 2);
@@ -337,9 +285,9 @@
                                 bmpScreenshot.Dispose();
                                 bitmapfile.Dispose();
                             }
-                        }
-                        else if (line.StartsWith("WAITCLOCK|", StringComparison.CurrentCulture))
-                        {
+                            break;
+
+                        case "WAITCLOCK":
                             if (count == 1)
                             {
                                 bool wait = true;
@@ -348,7 +296,7 @@
                                 {
                                     DateTime now = DateTime.Now;
 
-                                    if (splitline[1] == now.ToString("HH") + ":" + now.ToString("mm"))
+                                    if (arguments[1] == now.ToString("HH") + ":" + now.ToString("mm"))
                                     {
                                         wait = false;
                                     }
@@ -356,9 +304,9 @@
                                     Thread.Sleep(1000);
                                 }
                             }
-                        }
-                        else if (line.StartsWith("CHECKPIXEL|", StringComparison.CurrentCulture))
-                        {
+                            break;
+
+                        case "CHECKPIXEL":
                             if (count >= 5)
                             {
                                 int windowwidth = SystemInformation.VirtualScreen.Width,
@@ -382,12 +330,12 @@
 
                                     //bmpScreenshot.Save("testi.bmp", ImageFormat.Bmp);
 
-                                    var x = Convert.ToInt32(splitline[1]);
-                                    var y = Convert.ToInt32(splitline[2]);
+                                    var x = Convert.ToInt32(arguments[1]);
+                                    var y = Convert.ToInt32(arguments[2]);
 
-                                    var r = Convert.ToInt32(splitline[3]);
-                                    var g = Convert.ToInt32(splitline[4]);
-                                    var b = Convert.ToInt32(splitline[5]);
+                                    var r = Convert.ToInt32(arguments[3]);
+                                    var g = Convert.ToInt32(arguments[4]);
+                                    var b = Convert.ToInt32(arguments[5]);
 
                                     //bmpScreenshot.SetPixel(x, y, Color.Red);
                                     //bmpScreenshot.Save("test.bmp", ImageFormat.Bmp);
@@ -409,11 +357,13 @@
                                 }
 
                             }
-                        }
-                        else if (line.StartsWith("STOP", StringComparison.CurrentCulture))
-                        {
                             break;
-                        }
+
+                        case "STOP":
+                            break;
+
+                        default:
+                            break;
                     }
                 }
             }
