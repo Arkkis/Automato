@@ -25,9 +25,6 @@ namespace Automato
 
         public Main()
         {
-            Application.ThreadException += Application_ThreadException;
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
             InitializeComponent();
         }
 
@@ -111,7 +108,7 @@ namespace Automato
 
                         if (line.StartsWith("PRESSKEY|", StringComparison.CurrentCulture))
                         {
-                            sim.Keyboard.KeyPress(ConvertToVirtualKey(splitline[1]));
+                            sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
                         }
                         else if (line.StartsWith("TYPE|", StringComparison.CurrentCulture))
                         {
@@ -121,15 +118,15 @@ namespace Automato
                         {
                             if (count == 2)
                             {
-                                sim.Keyboard.ModifiedKeyStroke(ConvertToVirtualKey(splitline[1]), ConvertToVirtualKey(splitline[2]));
+                                sim.Keyboard.ModifiedKeyStroke(KeyCodeConverter.ConvertToVirtualKey(splitline[1]), KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
                             }
                             else if (count == 3)
                             {
-                                sim.Keyboard.KeyDown(ConvertToVirtualKey(splitline[1]));
-                                sim.Keyboard.KeyDown(ConvertToVirtualKey(splitline[2]));
-                                sim.Keyboard.KeyPress(ConvertToVirtualKey(splitline[3]));
-                                sim.Keyboard.KeyUp(ConvertToVirtualKey(splitline[1]));
-                                sim.Keyboard.KeyUp(ConvertToVirtualKey(splitline[2]));
+                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
+                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
+                                sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(splitline[3]));
+                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(splitline[1]));
+                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(splitline[2]));
                             }
                         }
                         else if (line.StartsWith("WAIT|", StringComparison.CurrentCulture))
@@ -456,358 +453,6 @@ namespace Automato
             return Math.Round(y1, 0);
         }
 
-        private static VirtualKeyCode ConvertToVirtualKey(string key)
-        {
-            VirtualKeyCode virtualkey = VirtualKeyCode.LMENU;
-
-            if (key.ToLower(CultureInfo.CurrentCulture) == "a")
-            {
-                virtualkey = VirtualKeyCode.VK_A;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "b")
-            {
-                virtualkey = VirtualKeyCode.VK_B;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "c")
-            {
-                virtualkey = VirtualKeyCode.VK_C;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "d")
-            {
-                virtualkey = VirtualKeyCode.VK_D;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "e")
-            {
-                virtualkey = VirtualKeyCode.VK_E;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f")
-            {
-                virtualkey = VirtualKeyCode.VK_F;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "g")
-            {
-                virtualkey = VirtualKeyCode.VK_G;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "h")
-            {
-                virtualkey = VirtualKeyCode.VK_H;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "i")
-            {
-                virtualkey = VirtualKeyCode.VK_I;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "j")
-            {
-                virtualkey = VirtualKeyCode.VK_J;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "k")
-            {
-                virtualkey = VirtualKeyCode.VK_K;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "l")
-            {
-                virtualkey = VirtualKeyCode.VK_L;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "m")
-            {
-                virtualkey = VirtualKeyCode.VK_M;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "n")
-            {
-                virtualkey = VirtualKeyCode.VK_N;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "o")
-            {
-                virtualkey = VirtualKeyCode.VK_O;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "p")
-            {
-                virtualkey = VirtualKeyCode.VK_P;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "q")
-            {
-                virtualkey = VirtualKeyCode.VK_Q;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "r")
-            {
-                virtualkey = VirtualKeyCode.VK_R;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "s")
-            {
-                virtualkey = VirtualKeyCode.VK_S;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "t")
-            {
-                virtualkey = VirtualKeyCode.VK_T;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "u")
-            {
-                virtualkey = VirtualKeyCode.VK_U;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "v")
-            {
-                virtualkey = VirtualKeyCode.VK_V;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "w")
-            {
-                virtualkey = VirtualKeyCode.VK_W;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "x")
-            {
-                virtualkey = VirtualKeyCode.VK_X;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "y")
-            {
-                virtualkey = VirtualKeyCode.VK_Y;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "z")
-            {
-                virtualkey = VirtualKeyCode.VK_Z;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "enter")
-            {
-                virtualkey = VirtualKeyCode.RETURN;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "lalt")
-            {
-                virtualkey = VirtualKeyCode.MENU;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "ralt")
-            {
-                virtualkey = VirtualKeyCode.RMENU;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "lcontrol")
-            {
-                virtualkey = VirtualKeyCode.CONTROL;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "rcontrol")
-            {
-                virtualkey = VirtualKeyCode.RCONTROL;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "lshift")
-            {
-                virtualkey = VirtualKeyCode.LSHIFT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "rshift")
-            {
-                virtualkey = VirtualKeyCode.RSHIFT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "lwin")
-            {
-                virtualkey = VirtualKeyCode.LWIN;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "rwin")
-            {
-                virtualkey = VirtualKeyCode.RWIN;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "delete")
-            {
-                virtualkey = VirtualKeyCode.DELETE;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "tab")
-            {
-                virtualkey = VirtualKeyCode.TAB;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "capslock")
-            {
-                virtualkey = VirtualKeyCode.CAPITAL;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "pause")
-            {
-                virtualkey = VirtualKeyCode.PAUSE;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "backspace")
-            {
-                virtualkey = VirtualKeyCode.BACK;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "space")
-            {
-                virtualkey = VirtualKeyCode.SPACE;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "pageup")
-            {
-                virtualkey = VirtualKeyCode.PRIOR;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "pagedown")
-            {
-                virtualkey = VirtualKeyCode.NEXT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "end")
-            {
-                virtualkey = VirtualKeyCode.END;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "home")
-            {
-                virtualkey = VirtualKeyCode.HOME;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "left")
-            {
-                virtualkey = VirtualKeyCode.LEFT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "right")
-            {
-                virtualkey = VirtualKeyCode.RIGHT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "up")
-            {
-                virtualkey = VirtualKeyCode.UP;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "down")
-            {
-                virtualkey = VirtualKeyCode.DOWN;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "printscreen")
-            {
-                virtualkey = VirtualKeyCode.SNAPSHOT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "insert")
-            {
-                virtualkey = VirtualKeyCode.INSERT;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "0")
-            {
-                virtualkey = VirtualKeyCode.VK_0;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "1")
-            {
-                virtualkey = VirtualKeyCode.VK_1;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "2")
-            {
-                virtualkey = VirtualKeyCode.VK_2;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "3")
-            {
-                virtualkey = VirtualKeyCode.VK_3;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "4")
-            {
-                virtualkey = VirtualKeyCode.VK_4;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "5")
-            {
-                virtualkey = VirtualKeyCode.VK_5;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "6")
-            {
-                virtualkey = VirtualKeyCode.VK_6;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "7")
-            {
-                virtualkey = VirtualKeyCode.VK_7;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "8")
-            {
-                virtualkey = VirtualKeyCode.VK_8;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "9")
-            {
-                virtualkey = VirtualKeyCode.VK_9;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "numlock")
-            {
-                virtualkey = VirtualKeyCode.NUMLOCK;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num0")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD0;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num1")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD1;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num2")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD2;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num3")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD3;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num4")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD4;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num5")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD5;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num6")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD6;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num7")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD7;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num8")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD8;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "num9")
-            {
-                virtualkey = VirtualKeyCode.NUMPAD9;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "menu")
-            {
-                virtualkey = VirtualKeyCode.APPS;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f1")
-            {
-                virtualkey = VirtualKeyCode.F1;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f2")
-            {
-                virtualkey = VirtualKeyCode.F2;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f3")
-            {
-                virtualkey = VirtualKeyCode.F3;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f4")
-            {
-                virtualkey = VirtualKeyCode.F4;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f5")
-            {
-                virtualkey = VirtualKeyCode.F5;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f6")
-            {
-                virtualkey = VirtualKeyCode.F6;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f7")
-            {
-                virtualkey = VirtualKeyCode.F7;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f8")
-            {
-                virtualkey = VirtualKeyCode.F8;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f9")
-            {
-                virtualkey = VirtualKeyCode.F9;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f10")
-            {
-                virtualkey = VirtualKeyCode.F10;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f11")
-            {
-                virtualkey = VirtualKeyCode.F11;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "f12")
-            {
-                virtualkey = VirtualKeyCode.F12;
-            }
-            else if (key.ToLower(CultureInfo.CurrentCulture) == "mouse1")
-            {
-                virtualkey = VirtualKeyCode.F12;
-            }
-
-            return virtualkey;
-        }
-
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             Environment.Exit(0);
@@ -818,12 +463,6 @@ namespace Automato
         {
             //ReportError(e.Exception.ToString());
             throw e.Exception;
-        }
-
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            //ReportError(e.ExceptionObject.ToString());
-            //throw e.;
         }
 
         public static Point? Find(Bitmap haystack, Bitmap needle)
@@ -916,25 +555,5 @@ namespace Automato
         internal int Top;         // y position of upper-left corner
         internal int Right;       // x position of lower-right corner
         internal int Bottom;      // y position of lower-right corner
-    }
-
-    internal class NativeMethods
-    {
-        [DllImport("user32.dll")]
-        internal static extern bool IsIconic(IntPtr hWnd);
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        internal static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-        [DllImport("user32.dll")]
-        internal static extern bool SetForegroundWindow(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        [DllImport("user32.dll")]
-        internal static extern IntPtr GetForegroundWindow();
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        internal static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        internal static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
     }
 }
