@@ -2,10 +2,6 @@
 {
     public partial class Main : Form
     {
-        private static readonly string applicationPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        //private string keyfile;
-        private bool loop = false;
-
         public Main()
         {
             InitializeComponent();
@@ -15,33 +11,24 @@
         {
             var args = Environment.GetCommandLineArgs();
 
-            var keyfile = $"{applicationPath}\\keys.akp";
-
-            if (!File.Exists(keyfile))
-            {
-                File.WriteAllText(keyfile, "");
-            }
-
             new Thread(() => new Background().ShowDialog()).Start();
 
             if (args.Length > 1)
             {
-                var sim = new InputSimulator();
+                var commandList = args[0];
 
-                for (int i = 1; i < args.Length; i++)
+                if (File.Exists(commandList))
                 {
-                    if (File.Exists(args[i]) && Path.GetExtension(args[i]) == ".akp")
-                    {
-                        keyfile = args[i];
-                        Start(loop, keyfile, sim);
-                    }
+                    var input = new InputSimulator();
+                    Start(commandList, input);
                 }
             }
         }
 
-        public static void Start(bool loop, string keyfile, InputSimulator sim)
+        public static void Start(string keyfile, InputSimulator input)
         {
             var commandList = File.ReadAllLines(keyfile);
+            bool loop = false;
 
             while (loop)
             {
@@ -59,6 +46,7 @@
                     }
 
                     var command = arguments[0];
+                    var commandService = new CommandService(arguments, input);
 
                     switch (command)
                     {
@@ -71,82 +59,31 @@
                             break;
 
                         case "PRESSKEY":
-                            sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
+                            commandService.PressKey();
                             break;
 
                         case "TYPE":
-                            sim.Keyboard.TextEntry(arguments[1]);
+                            commandService.Type();
                             break;
 
                         case "SENDKEYS":
-                            if (count == 2)
-                            {
-                                sim.Keyboard.ModifiedKeyStroke(KeyCodeConverter.ConvertToVirtualKey(arguments[1]), KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
-                            }
-                            else if (count == 3)
-                            {
-                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
-                                sim.Keyboard.KeyDown(KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
-                                sim.Keyboard.KeyPress(KeyCodeConverter.ConvertToVirtualKey(arguments[3]));
-                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(arguments[1]));
-                                sim.Keyboard.KeyUp(KeyCodeConverter.ConvertToVirtualKey(arguments[2]));
-                            }
+                            commandService.SendKeys();
                             break;
 
                         case "WAIT":
-                            var isNumeric = int.TryParse(arguments[1], out int seconds);
-                            if (isNumeric)
-                            {
-                                Debug.WriteLine("Waiting for " + seconds / 1000);
-                                Thread.Sleep(seconds);
-                            }
+                            commandService.Wait();
                             break;
 
                         case "RUNCOMMAND":
-                            var runfile = string.Empty;
-
-                            if (File.Exists(applicationPath + @"\" + arguments[1]))
-                            {
-                                runfile = applicationPath + @"\" + arguments[1];
-                            }
-                            else if (File.Exists(arguments[1]))
-                            {
-                                runfile = arguments[1];
-                            }
-
-                            if (runfile.Length > 0)
-                            {
-                                ProcessStartInfo startInfo = new(runfile);
-                                if (count == 2)
-                                {
-                                    //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                                    startInfo.Arguments = arguments[2];
-                                }
-                                Process.Start(startInfo);
-                            }
+                            commandService.RunCommand();
                             break;
 
                         case "WINACTIVATE":
-                            Commands.WinActivate(arguments[1]);
+                            commandService.WinActivate();
                             break;
 
                         case "WAITWIN":
-                            if (count == 2)
-                            {
-                                for (int i = 0; i < int.Parse(arguments[1], CultureInfo.CurrentCulture) / 1000; i++)
-                                {
-                                    var prc = Process.GetProcessesByName(arguments[2]);
-                                    if (prc.Length > 0)
-                                    {
-                                        if (NativeMethods.GetForegroundWindow().Equals(prc[0].MainWindowHandle))
-                                        {
-                                            break;
-                                        }
-                                        Debug.WriteLine("Waiting executable...");
-                                        Thread.Sleep(1000);
-                                    }
-                                }
-                            }
+                            commandService.WaitWindowToBeActive();
                             break;
 
                         case "WAITFILE":
@@ -167,7 +104,7 @@
                         case "MOUSECLICK":
                             if (count >= 3)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[2]), MouseHelpers.GetMouseY(arguments[3]));
+                                input.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[2]), MouseHelpers.GetMouseY(arguments[3]));
                                 Thread.Sleep(10);
 
                                 int clicktimes = 1;
@@ -183,19 +120,19 @@
                                 {
                                     if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse1")
                                     {
-                                        sim.Mouse.LeftButtonClick();
+                                        input.Mouse.LeftButtonClick();
                                     }
                                     else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse1double")
                                     {
-                                        sim.Mouse.LeftButtonDoubleClick();
+                                        input.Mouse.LeftButtonDoubleClick();
                                     }
                                     else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse2")
                                     {
-                                        sim.Mouse.RightButtonClick();
+                                        input.Mouse.RightButtonClick();
                                     }
                                     else if (arguments[1].ToLower(CultureInfo.CurrentCulture) == "mouse2double")
                                     {
-                                        sim.Mouse.RightButtonDoubleClick();
+                                        input.Mouse.RightButtonDoubleClick();
                                     }
                                     Thread.Sleep(100);
                                 }
@@ -205,7 +142,7 @@
                         case "MOUSEMOVE":
                             if (count == 2)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[1]), MouseHelpers.GetMouseY(arguments[2]));
+                                input.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(arguments[1]), MouseHelpers.GetMouseY(arguments[2]));
                             }
                             break;
 
@@ -274,9 +211,9 @@
                                         {
                                             double XCoord = picturefound.Value.X + (bitmapfile.Width / 2);
                                             double YCoord = picturefound.Value.Y + (bitmapfile.Height / 2);
-                                            sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(XCoord.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(YCoord.ToString(CultureInfo.CurrentCulture)));
+                                            input.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(XCoord.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(YCoord.ToString(CultureInfo.CurrentCulture)));
                                             Thread.Sleep(100);
-                                            sim.Mouse.LeftButtonClick();
+                                            input.Mouse.LeftButtonClick();
                                             Thread.Sleep(100);
                                         }
                                     }
@@ -344,9 +281,9 @@
 
                                     if (test2.R == r && test2.G == g && test2.B == b)
                                     {
-                                        sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(x.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(y.ToString(CultureInfo.CurrentCulture)));
+                                        input.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(x.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(y.ToString(CultureInfo.CurrentCulture)));
                                         Thread.Sleep(10);
-                                        sim.Mouse.LeftButtonClick();
+                                        input.Mouse.LeftButtonClick();
                                     }
 
                                     gfxScreenshot.Dispose();
