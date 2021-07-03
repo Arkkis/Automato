@@ -1,14 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Windows.Forms;
-using WindowsInput;
-
-namespace Automato
+﻿namespace Automato
 {
     public partial class Background : Form
     {
-        readonly InputSimulator sim = new();
-
         enum KeyModifier
         {
             None = 0,

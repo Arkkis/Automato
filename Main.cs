@@ -1,18 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using WindowsInput.Native;
-using WindowsInput;
-using System.IO;
-using System.Diagnostics;
-using System.Threading;
-using System.Runtime.InteropServices;
-using System.Globalization;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Automato
+﻿namespace Automato
 {
     public partial class Main : Form
     {
@@ -222,7 +208,7 @@ namespace Automato
                         {
                             if (count >= 3)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(GetScreenXCoordinateForMouse(splitline[2]), GetScreenYCoordinateForMouse(splitline[3]));
+                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[2]), MouseHelpers.GetMouseY(splitline[3]));
                                 Thread.Sleep(10);
 
                                 int clicktimes = 1;
@@ -260,7 +246,7 @@ namespace Automato
                         {
                             if (count == 2)
                             {
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(GetScreenXCoordinateForMouse(splitline[1]), GetScreenYCoordinateForMouse(splitline[2]));
+                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[1]), MouseHelpers.GetMouseY(splitline[2]));
                             }
                         }
                         else if (line.StartsWith("MOUSEHOLD|", StringComparison.CurrentCulture))
@@ -269,7 +255,7 @@ namespace Automato
                             {
                                 bool isNumeric = int.TryParse(splitline[3], out int n);
 
-                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(GetScreenXCoordinateForMouse(splitline[1]), GetScreenYCoordinateForMouse(splitline[2]));
+                                sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(splitline[1]), MouseHelpers.GetMouseY(splitline[2]));
                                 sim.Mouse.LeftButtonDown();
                                 if (isNumeric)
                                 {
@@ -295,7 +281,7 @@ namespace Automato
                                     Process[] prc = Process.GetProcessesByName(splitline[3]);
                                     if (prc.Length > 0)
                                     {
-                                        if (NativeMethods.GetWindowRect(prc[0].MainWindowHandle, out RECT rct))
+                                        if (NativeMethods.GetWindowRect(prc[0].MainWindowHandle, out var rct))
                                         {
                                             WindowBounds.X = rct.Left;
                                             WindowBounds.Y = rct.Top;
@@ -328,7 +314,7 @@ namespace Automato
                                 gfxScreenshot.CopyFromScreen(windowx, windowy, 0, 0, windowsize, CopyPixelOperation.SourceCopy);
                                 //bmpScreenshot.Save("kuva.bmp", ImageFormat.Bmp);
                                 //Environment.Exit(0);
-                                Point? picturefound = Find(bmpScreenshot, bitmapfile);
+                                Point? picturefound = ImageService.FindImageInImage(bmpScreenshot, bitmapfile);
 
                                 if (picturefound != null)
                                 {
@@ -340,7 +326,7 @@ namespace Automato
                                         {
                                             double XCoord = picturefound.Value.X + (bitmapfile.Width / 2);
                                             double YCoord = picturefound.Value.Y + (bitmapfile.Height / 2);
-                                            sim.Mouse.MoveMouseToPositionOnVirtualDesktop(GetScreenXCoordinateForMouse(XCoord.ToString(CultureInfo.CurrentCulture)), GetScreenYCoordinateForMouse(YCoord.ToString(CultureInfo.CurrentCulture)));
+                                            sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(XCoord.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(YCoord.ToString(CultureInfo.CurrentCulture)));
                                             Thread.Sleep(100);
                                             sim.Mouse.LeftButtonClick();
                                             Thread.Sleep(100);
@@ -410,7 +396,7 @@ namespace Automato
 
                                     if (test2.R == r && test2.G == g && test2.B == b)
                                     {
-                                        sim.Mouse.MoveMouseToPositionOnVirtualDesktop(GetScreenXCoordinateForMouse(x.ToString(CultureInfo.CurrentCulture)), GetScreenYCoordinateForMouse(y.ToString(CultureInfo.CurrentCulture)));
+                                        sim.Mouse.MoveMouseToPositionOnVirtualDesktop(MouseHelpers.GetMouseX(x.ToString(CultureInfo.CurrentCulture)), MouseHelpers.GetMouseY(y.ToString(CultureInfo.CurrentCulture)));
                                         Thread.Sleep(10);
                                         sim.Mouse.LeftButtonClick();
                                     }
@@ -435,24 +421,6 @@ namespace Automato
             Application.Exit();
         }
 
-        private static double GetScreenXCoordinateForMouse(string x)
-        {
-            double x1 = double.Parse(x, CultureInfo.CurrentCulture);
-            double x2 = x1 / (SystemInformation.VirtualScreen.Width);
-            x1 = 65535 * x2;
-
-            return Math.Round(x1, 0);
-        }
-
-        private static double GetScreenYCoordinateForMouse(string y)
-        {
-            double y1 = double.Parse(y, CultureInfo.CurrentCulture);
-            double y2 = y1 / SystemInformation.VirtualScreen.Height;
-            y1 = 65535 * y2;
-
-            return Math.Round(y1, 0);
-        }
-
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             Environment.Exit(0);
@@ -464,96 +432,5 @@ namespace Automato
             //ReportError(e.Exception.ToString());
             throw e.Exception;
         }
-
-        public static Point? Find(Bitmap haystack, Bitmap needle)
-        {
-            if (null == haystack || null == needle)
-            {
-                return null;
-            }
-            if (haystack.Width < needle.Width || haystack.Height < needle.Height)
-            {
-                return null;
-            }
-
-            var haystackArray = GetPixelArray(haystack);
-            var needleArray = GetPixelArray(needle);
-
-            foreach (var firstLineMatchPoint in FindMatch(haystackArray.Take(haystack.Height - needle.Height), needleArray[0]))
-            {
-                if (IsNeedlePresentAtLocation(haystackArray, needleArray, firstLineMatchPoint, 1))
-                {
-                    return firstLineMatchPoint;
-                }
-            }
-
-            return null;
-        }
-
-        private static int[][] GetPixelArray(Bitmap bitmap)
-        {
-            var result = new int[bitmap.Height][];
-            var bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb);
-
-            for (int y = 0; y < bitmap.Height; ++y)
-            {
-                result[y] = new int[bitmap.Width];
-                Marshal.Copy(bitmapData.Scan0 + y * bitmapData.Stride, result[y], 0, result[y].Length);
-            }
-
-            bitmap.UnlockBits(bitmapData);
-
-            return result;
-        }
-
-        private static IEnumerable<Point> FindMatch(IEnumerable<int[]> haystackLines, int[] needleLine)
-        {
-            var y = 0;
-            foreach (var haystackLine in haystackLines)
-            {
-                for (int x = 0, n = haystackLine.Length - needleLine.Length; x < n; ++x)
-                {
-                    if (ContainSameElements(haystackLine, x, needleLine, 0, needleLine.Length))
-                    {
-                        yield return new Point(x, y);
-                    }
-                }
-                y += 1;
-            }
-        }
-
-        private static bool ContainSameElements(int[] first, int firstStart, int[] second, int secondStart, int length)
-        {
-            for (int i = 0; i < length; ++i)
-            {
-                if (first[i + firstStart] != second[i + secondStart])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private static bool IsNeedlePresentAtLocation(int[][] haystack, int[][] needle, Point point, int alreadyVerified)
-        {
-            //we already know that "alreadyVerified" lines already match, so skip them
-            for (int y = alreadyVerified; y < needle.Length; ++y)
-            {
-                if (!ContainSameElements(haystack[y + point.Y], point.X, needle[y], 0, needle[y].Length))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    internal struct RECT
-    {
-        internal int Left;        // x position of upper-left corner
-        internal int Top;         // y position of upper-left corner
-        internal int Right;       // x position of lower-right corner
-        internal int Bottom;      // y position of lower-right corner
     }
 }

@@ -1,6 +1,3 @@
-using System;
-using System.Windows.Forms;
-
 namespace Automato
 {
     static class Program
